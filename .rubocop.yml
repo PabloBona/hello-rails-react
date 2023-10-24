@@ -16,11 +16,9 @@ Metrics/AbcSize:
 Metrics/ClassLength:
   Max: 150
 Metrics/BlockLength:
-  Enabled: true
+  IgnoredMethods: ['describe']
   Max: 30
-  AllowedMethods:
-    - long_method
-    - another_long_method
+
 
 Style/Documentation:
   Enabled: false
