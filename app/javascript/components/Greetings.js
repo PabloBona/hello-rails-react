@@ -13,10 +13,10 @@ const Greetings = () => {
   return (
     <div className="container">
       <div className="row justify-content-center">
-        <div className="col-md-6 border border-dark p-4" >
+        <div className="col text-center" >
           {loading && <p>Loading...</p>}
           {error && <p className="text-danger">Error: {error}</p>}
-          {greeting && <p className="text-dark">Greeting: {greeting}</p>}
+          {greeting && <h1 className="text-dark mt-5">{greeting}</h1>}
         </div>
       </div>
     </div>
