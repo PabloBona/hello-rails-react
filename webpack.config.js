@@ -12,17 +12,17 @@ module.exports = {
       {
         test: /\.(js)$/,
         exclude: /node_modules/,
-        use: ['babel-loader'], // Solo babel-loader para archivos JS
+        use: ['babel-loader'], 
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'bootstrap-loader'], // Usar style-loader y css-loader para archivos CSS
+        use: ['style-loader', 'css-loader', 'bootstrap-loader'], 
       },
     ],
   },
   output: {
     filename: '[name].js',
     sourceMapFilename: '[name].js.map',
-    path: path.resolve(__dirname, 'app/assets/builds/greetings'),
+    path: path.resolve(__dirname, 'app/assets/builds/'),
   },
 };
