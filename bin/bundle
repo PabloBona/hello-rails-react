@@ -8,7 +8,7 @@
 
 require 'rubygems'
 
-m = Module.new do
+module BundlerWrapper
   module_function
 
   def invoked_as_script?
@@ -20,35 +20,27 @@ m = Module.new do
   end
 
   def cli_arg_version
-    return unless invoked_as_script? # don't want to hijack other binstubs
-    return unless 'update'.start_with?(ARGV.first || ' ') # must be running `bundle update`
+    return unless invoked_as_script? && ARGV.first == 'update'
 
     bundler_version = nil
-    update_index = nil
-    ARGV.each_with_index do |a, i|
-      bundler_version = a if update_index && update_index.succ == i && a =~ Gem::Version::ANCHORED_VERSION_PATTERN
+    ARGV.each_with_index do |a, _i|
       next unless a =~ /\A--bundler(?:[= ](#{Gem::Version::VERSION_PATTERN}))?\z/
 
       bundler_version = Regexp.last_match(1)
-      update_index = i
+      break
     end
     bundler_version
   end
 
   def gemfile
-    gemfile = ENV.fetch('BUNDLE_GEMFILE', nil)
-    return gemfile if gemfile && !gemfile.empty?
-
-    File.expand_path('../Gemfile', __dir__)
+    ENV.fetch('BUNDLE_GEMFILE', File.expand_path('../Gemfile', __dir__))
   end
 
   def lockfile
-    lockfile =
-      case File.basename(gemfile)
-      when 'gems.rb' then gemfile.sub(/\.rb$/, '.locked')
-      else "#{gemfile}.lock"
-      end
-    File.expand_path(lockfile)
+    case File.basename(gemfile)
+    when 'gems.rb' then "#{gemfile.sub(/\.rb$/, '')}.locked"
+    else "#{gemfile}.lock"
+    end
   end
 
   def lockfile_version
@@ -61,18 +53,11 @@ m = Module.new do
   end
 
   def bundler_requirement
-    @bundler_requirement ||=
-      env_var_version ||
-      cli_arg_version ||
-      bundler_requirement_for(lockfile_version)
+    @bundler_requirement ||= env_var_version || cli_arg_version || bundler_requirement_for(lockfile_version)
   end
 
   def bundler_requirement_for(version)
-    return "#{Gem::Requirement.default}.a" unless version
-
-    bundler_gem_version = Gem::Version.new(version)
-
-    bundler_gem_version.approximate_recommendation
+    version ? Gem::Version.new(version).approximate_recommendation : "#{Gem::Requirement.default}.a"
   end
 
   def load_bundler!
@@ -82,19 +67,15 @@ m = Module.new do
   end
 
   def activate_bundler
-    gem_error = activation_error_handling do
-      gem 'bundler', bundler_requirement
-    end
+    gem_error = activation_error_handling { gem 'bundler', bundler_requirement }
     return if gem_error.nil?
 
-    require_error = activation_error_handling do
-      require 'bundler/version'
-    end
+    require_error = activation_error_handling { require 'bundler/version' }
     if require_error.nil? && Gem::Requirement.new(bundler_requirement).satisfied_by?(Gem::Version.new(Bundler::VERSION))
       return
     end
 
-    warn "Activating bundler (#{bundler_requirement}) failed:\n#{gem_error.message}\n\nTo install the version of bundler this project requires, run `gem install bundler -v '#{bundler_requirement}'`"
+    warn "Activating bundler (#{bundler_requirement}) failed:\n#{gem_error.message}\n\n '#{bundler_requirement}'`"
     exit 42
   end
 
@@ -106,6 +87,6 @@ m = Module.new do
   end
 end
 
-m.load_bundler!
+BundlerWrapper.load_bundler!
 
-load Gem.bin_path('bundler', 'bundle') if m.invoked_as_script?
+load Gem.bin_path('bundler', 'bundle') if BundlerWrapper.invoked_as_script?
