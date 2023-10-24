@@ -1,9 +1,6 @@
 AllCops:
   NewCops: enable
   Exclude:
-    - "db/**/*"
-    - "bin/*" 
-    - "config/**/*"
     - "Guardfile"
     - "Rakefile"
     - "node_modules/**/*"
@@ -13,20 +10,17 @@ AllCops:
 Layout/LineLength:
   Max: 120
 Metrics/MethodLength:
-  Include:
-    - "app/controllers/*"
-    - "app/models/*"
   Max: 20
 Metrics/AbcSize:
-  Include:
-    - "app/controllers/*"
-    - "app/models/*"
   Max: 50
 Metrics/ClassLength:
   Max: 150
 Metrics/BlockLength:
-  AllowedMethods: ['describe']
+  Enabled: true
   Max: 30
+  AllowedMethods:
+    - long_method
+    - another_long_method
 
 Style/Documentation:
   Enabled: false
